@@ -1,0 +1,14 @@
+MODEL: BAAI/bge-m3
+DATASET:
+UMAP: 
+  neighbors: 15
+  dist: 0.0
+  components: 50
+  metric: "cosine"
+  random_state: 42
+HDBSCAN:
+  min_cluster_size: 5
+  min_samples: 3
+  metric: 'euclidean'
+  cluster_selection_method: 'eom'
+  prediction_data: True
