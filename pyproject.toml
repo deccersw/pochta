@@ -6,11 +6,14 @@ authors = [
     {name = "Vlad",email = "burovin123@yandex.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "flagembedding (>=1.3.5,<2.0.0)",
     "umap (>=0.1.1,<0.2.0)",
-    "hdbscan (>=0.8.40,<0.9.0)"
+    "hdbscan (>=0.8.40,<0.9.0)",
+    "spacy (>=3.8.7,<4.0.0)",
+    "umap-learn (>=0.5.9.post2,<0.6.0)",
+    "openpyxl (>=3.1.5,<4.0.0)"
 ]
 
 

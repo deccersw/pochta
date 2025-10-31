@@ -1,5 +1,5 @@
-MODEL: BAAI/bge-m3
-DATASET:
+MODEL: C:\Users\burov\Documents\pochta\pochta\models\bge-m3
+DATASET: "C:/Users/burov/Documents/pochta/pochta/data/Пишу тебе. Корпус для хакатона (2024).xlsx"
 UMAP: 
   neighbors: 15
   dist: 0.0
@@ -12,3 +12,19 @@ HDBSCAN:
   metric: 'euclidean'
   cluster_selection_method: 'eom'
   prediction_data: True
+TQDM:
+  keep_patterns:
+      - "VERB NOUN"      
+      - "VERB ADP NOUN"      
+      - "ADJ NOUN"            
+      - "PRON ADJ NOUN"      
+      - "NOUN NOUN"         
+      - "ADV VERB"           
+      - "VERB ADV"          
+      - "ADJ ADJ NOUN"      
+      - "VERB PRON NOUN"   
+      - "ADP NOUN NOUN"    
+      - "VERB DET NOUN"    
+      - "ADJ VERB"     
+      - "NOUN VERB"   
+
