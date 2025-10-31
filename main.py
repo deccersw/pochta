@@ -1,4 +1,4 @@
-# БЛОК 1: Импорт библиотек
+
 import pandas as pd
 import numpy as np
 import re
@@ -21,8 +21,7 @@ warnings.filterwarnings('ignore')
 # БЛОК 2: Загрузка и предобработка данных
 print("=== БЛОК 2: Загрузка данных ===")
 
-# Укажите путь к вашему файлу
-file_path = "/Users/danial2006/Хакатон/Пишу тебе. Корпус для хакатона (2024).xlsx"  # Измените на ваш путь к файлу
+file_path = "/Users/danial2006/Хакатон/Пишу тебе. Корпус для хакатона (2024).xlsx" 
 
 if not os.path.exists(file_path):
     raise FileNotFoundError(f"Файл {file_path} не найден. Укажите правильный путь.")
@@ -31,17 +30,14 @@ df = pd.read_excel(file_path, sheet_name=0)
 
 print(f"Исходный размер датасета: {len(df)} записей")
 
-# Фильтруем только русские тексты
+
 df = df[df["Язык текста открытки"] == "русский"].dropna(subset=["Текст открытки"]).reset_index(drop=True)
 print(f" После фильтрации русских текстов: {len(df)} записей")
 
-# Обрабатываем даты более аккуратно
 print("\n🔧 Обрабатываем даты...")
 
-# Создаем копию столбца с датами для безопасной обработки
 df['date_processed'] = pd.to_datetime(df['Дата открытки (нормализованная)'], errors='coerce')
 
-# Считаем статистику по датам
 valid_dates = df['date_processed'].notna()
 print(f"Корректных дат: {valid_dates.sum()}")
 print(f"Некорректных/пропущенных дат: {len(df) - valid_dates.sum()}")
@@ -53,11 +49,9 @@ if valid_dates.any():
 else:
     print("Нет корректных дат для анализа")
 
-# Добавляем год и десятилетие только для корректных дат
 df['year'] = df['date_processed'].dt.year
 df['decade'] = (df['year'] // 10) * 10
 
-# Показываем распределение по десятилетиям
 decade_counts = df[df['decade'].notna()]['decade'].value_counts().sort_index()
 print("\nРаспределение по десятилетиям:")
 for decade, count in decade_counts.items():
@@ -75,17 +69,14 @@ def normalize_text(text):
     if not isinstance(text, str):
         return ""
     text = text.lower()
-    # Замена дореволюционных букв
     text = re.sub("ѣ", "е", text)
     text = re.sub("і", "и", text)
     text = re.sub("ѳ", "ф", text)
     text = re.sub("ъ(?=\s|$)", "", text)
-    # Удаление лишних символов
     text = re.sub("[^а-яё\s]", " ", text)
     text = re.sub("\s+", " ", text).strip()
     return text
 
-# Применяем нормализацию
 df["text_clean"] = df["Текст открытки"].apply(normalize_text)
 
 print("Примеры очищенных текстов:")
@@ -98,26 +89,24 @@ for i in range(2):
 
 print(f"\nОбработано {len(df)} текстов")
 
-# БЛОК 4: ИЗВЛЕЧЕНИЕ N-ГРАММ
 print("\n=== БЛОК 4: Извлечение n-грамм ===")
 
-# Используем CountVectorizer для извлечения биграмм и триграмм
+
 vectorizer = CountVectorizer(
     analyzer="word",
-    ngram_range=(2, 4),  # Биграммы, триграммы и четырехграммы
-    min_df=2,  # Фраза должна встречаться минимум в 2 документах
-    max_df=0.8,  # Исключаем слишком частые фразы
+    ngram_range=(2, 4),  
+    min_df=2,  
+    max_df=0.8,  
     token_pattern=r"(?u)\b[а-яё]{2,}\b"
 )
 
-# Обучаем векторйзер и преобразуем тексты
+
 X = vectorizer.fit_transform(df["text_clean"])
 phrases = vectorizer.get_feature_names_out()
 frequencies = X.sum(axis=0).A1
 
 print(f"Извлечено {len(phrases)} n-грамм")
 
-# Создаем DataFrame с фразами и частотами
 phrases_df = pd.DataFrame({
     "phrase": phrases,
     "frequency": frequencies
@@ -126,13 +115,13 @@ phrases_df = pd.DataFrame({
 print("\n🏆 Топ-20 самых частых фраз:")
 print(phrases_df.head(20))
 
-# Сохраняем матрицу для дальнейшего использования
+
 phrase_doc_matrix = X
 
 # БЛОК 5: POS-ФИЛЬТРАЦИЯ N-ГРАММ С ИСПОЛЬЗОВАНИЕМ SPACY
 print("\n=== БЛОК 5: POS-фильтрация n-грамм с использованием spaCy ===")
 
-# Проверяем наличие модели spaCy
+
 try:
     nlp = spacy.load("ru_core_news_md")
     print("Модель spaCy загружена!")
@@ -142,7 +131,6 @@ except OSError:
     print("python -m spacy download ru_core_news_md")
     exit(1)
 
-# Функция для получения POS-паттерна
 def get_pos_pattern(phrase):
     """Возвращает строку с POS-тегами для фразы"""
     doc = nlp(phrase)
@@ -150,12 +138,10 @@ def get_pos_pattern(phrase):
 
 print("Анализируем части речи для n-грамм...")
 
-# Получаем POS-паттерны для всех фраз
 pos_patterns = []
 for phrase in tqdm(phrases):
     pos_patterns.append(get_pos_pattern(phrase))
 
-# Создаем DataFrame с фразами, частотами и POS-паттернами
 df_phr = pd.DataFrame({
     "phrase": phrases, 
     "freq": frequencies, 
@@ -164,7 +150,6 @@ df_phr = pd.DataFrame({
 
 print(f"Проанализировано {len(df_phr)} фраз")
 
-# Определяем шаблоны для значимых фраз поздравлений
 keep_patterns = [
     "VERB NOUN",           # "поздравляю с праздником"
     "VERB ADP NOUN",       # "желаю в новый год" 
@@ -181,19 +166,16 @@ keep_patterns = [
     "NOUN VERB",           # "поздравления принимаю"
 ]
 
-# Фильтруем фразы по шаблонам
 df_phr_filtered = df_phr[df_phr["pattern"].isin(keep_patterns)].copy()
 
 print(f"До фильтрации: {len(df_phr)} фраз")
 print(f"После фильтрации: {len(df_phr_filtered)} фраз")
 
-# Анализируем распределение по паттернам
 pattern_stats = df_phr_filtered['pattern'].value_counts()
 print("\nРаспределение по POS-паттернам:")
 for pattern, count in pattern_stats.items():
     print(f"   {pattern}: {count} фраз")
 
-# Обновляем наши переменные для дальнейшего анализа
 meaningful_phrases = df_phr_filtered['phrase'].tolist()
 meaningful_frequencies = df_phr_filtered['freq'].tolist()
 meaningful_phrases_df = df_phr_filtered.sort_values('freq', ascending=False)
@@ -201,7 +183,6 @@ meaningful_phrases_df = df_phr_filtered.sort_values('freq', ascending=False)
 print("\nТоп-20 самых частых фраз после POS-фильтрации:")
 print(meaningful_phrases_df.head(20))
 
-# Показываем примеры для каждого паттерна
 print("\nПримеры фраз по каждому POS-паттерну:")
 for pattern in keep_patterns:
     examples = df_phr_filtered[df_phr_filtered['pattern'] == pattern].head(2)
@@ -210,7 +191,6 @@ for pattern in keep_patterns:
         for _, row in examples.iterrows():
             print(f"      '{row['phrase']}' (частота: {row['freq']})")
 
-# Визуализация распределения паттернов
 print("\nСоздаем визуализации...")
 
 fig_patterns = px.bar(
@@ -229,7 +209,6 @@ fig_patterns.update_layout(
 )
 fig_patterns.show()
 
-# Создаем treemap для визуализации структуры фраз
 if len(df_phr_filtered) > 0:
     fig_treemap = px.treemap(
         df_phr_filtered.nlargest(50, 'freq'),
